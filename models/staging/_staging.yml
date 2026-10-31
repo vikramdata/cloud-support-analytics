@@ -1,0 +1,75 @@
+version: 2
+
+models:
+  - name: stg_support_cases
+    description: One row per support case. Typed, deduplicated, with data quality flags.
+    columns:
+      - name: case_id
+        data_tests: [unique, not_null]
+      - name: created_at
+        data_tests: [not_null]
+      - name: priority
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ["P1", "P2", "P3", "P4"]
+      - name: status
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ["Open", "Pending Customer", "Closed"]
+      - name: customer_id
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('stg_customers')
+                field: customer_id
+      - name: product_id
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('stg_products')
+                field: product_id
+      - name: assigned_agent_id
+        description: Missing for some cases in the source (planted defect). Reported as "Unassigned".
+        data_tests:
+          - not_null:
+              config:
+                severity: warn
+      - name: has_invalid_resolved_at
+        description: True when resolved_at is earlier than created_at. These cases are excluded from duration metrics.
+
+  - name: stg_csat_responses
+    description: One row per CSAT survey. Invalid scores and orphan surveys are kept and flagged.
+    columns:
+      - name: survey_id
+        data_tests: [unique, not_null]
+      - name: is_valid_score
+        description: True when the score is an integer from 1 to 5.
+      - name: has_matching_case
+        description: False when the survey references a case that doesn't exist.
+
+  - name: stg_customers
+    columns:
+      - name: customer_id
+        data_tests: [unique, not_null]
+      - name: support_tier
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ["Standard", "Enhanced", "Premium"]
+
+  - name: stg_agents
+    columns:
+      - name: agent_id
+        data_tests: [unique, not_null]
+
+  - name: stg_products
+    columns:
+      - name: product_id
+        data_tests: [unique, not_null]
+
+  - name: stg_sla_targets
+    columns:
+      - name: first_response_target_minutes
+        data_tests: [not_null]

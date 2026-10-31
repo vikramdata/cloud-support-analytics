@@ -1,0 +1,20 @@
+version: 2
+
+sources:
+  - name: raw
+    description: Raw CSV loads from load_raw.sh. Every column is STRING and nothing is cleaned.
+    schema: raw
+    tables:
+      - name: support_cases
+        columns:
+          - name: case_id
+            data_tests:
+              # Duplicates are planted in the source; staging removes them.
+              - unique:
+                  config:
+                    severity: warn
+      - name: csat_responses
+      - name: customers
+      - name: agents
+      - name: products
+      - name: sla_targets

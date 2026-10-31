@@ -1,0 +1,14 @@
+# Copy this file to ~/.dbt/profiles.yml and replace YOUR_PROJECT_ID.
+# Authenticate once with:  gcloud auth application-default login
+cloud_support_analytics:
+  target: dev
+  outputs:
+    dev:
+      type: bigquery
+      method: oauth
+      project: cloud-support-analytics
+      dataset: analytics        # fallback dataset; models go to `staging` and `marts`
+      location: US              # must match the `raw` dataset
+      threads: 4
+      job_execution_timeout_seconds: 300
+      priority: interactive
